@@ -781,69 +781,77 @@ See https://github.com/adobe-type-tools/cmap-resources
         </div>
       </div> <!-- editorUndoBar -->
 
-    </div> <!-- outerContainer -->
-    <div id="printContainer"></div>
-        <!-- ... 위쪽 PDF.js 기본 코드들은 그대로 두고, 맨 끝에 추가 -->
-  <script>
-    // 1) PDF.js 기본 스크롤 모드를 수평 스크롤로 설정
-    document.addEventListener("pagesinit", function () {
-      try {
-        if (window.pdfjsLib &&
-            window.PDFViewerApplication &&
-            PDFViewerApplication.pdfViewer) {
+          </div> <!-- outerContainer -->
+      <div id="printContainer"></div>
 
-          // pdfjsLib.ScrollMode.HORIZONTAL 이 있으면 사용, 없으면 1로 대체
-          const ScrollMode = pdfjsLib.ScrollMode || { HORIZONTAL: 1, PAGE: 3 };
+      <!-- 여기부터 사용자 커스텀 스크립트 -->
+      <script>
+        // 1) PDF.js 기본 스크롤 모드를 수평 스크롤로 설정
+        document.addEventListener("pagesinit", function () {
+          try {
+            if (window.pdfjsLib &&
+                window.PDFViewerApplication &&
+                window.PDFViewerApplication.pdfViewer) {
 
-          // 책 넘기듯 좌우 스크롤 (연속 수평 스크롤)
-          PDFViewerApplication.pdfViewer.scrollMode =
-            ScrollMode.HORIZONTAL || 1;
+              // pdfjsLib.ScrollMode.HORIZONTAL 이 있으면 사용, 없으면 1로 대체
+              const ScrollMode = window.pdfjsLib.ScrollMode || { HORIZONTAL: 1, PAGE: 3 };
 
-          // 만약 한 장씩 "탁탁" 넘기는 느낌을 원하면 위 줄 대신 아래 줄 사용
-          // PDFViewerApplication.pdfViewer.scrollMode = ScrollMode.PAGE || 3;
-        }
-      } catch (e) {
-        console.warn("scrollMode 설정 실패:", e);
-      }
-    });
+              // 책 넘기듯 좌우 스크롤 (연속 수평 스크롤)
+              window.PDFViewerApplication.pdfViewer.scrollMode =
+                ScrollMode.HORIZONTAL || 1;
 
-    // 2) PrintScreen / Ctrl+P 등 기본적인 캡처·인쇄 억제
-    document.addEventListener("keydown", function (e) {
-      // PrintScreen 키
-      if (e.key === "PrintScreen") {
-        e.preventDefault();
-        alert("보안 정책상 화면 캡처가 차단되었습니다.");
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText("");  // 클립보드 비우기
-        }
-      }
-      // Ctrl+P 또는 Cmd+P (인쇄)
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
-        e.preventDefault();
-        alert("보안 정책상 인쇄가 차단되었습니다.");
-      }
-    });
-
-    // 3) DevTools(개발자 도구) 감지 – PC에서만 동작하도록 제한
-    if (window.innerWidth > 800) { // 모바일에서 오동작 방지
-      const threshold = 160;  // 외곽-내곽 차이가 크면 도구가 열린 것으로 추정
-      setInterval(function () {
-        try {
-          if (window.outerWidth - window.innerWidth > threshold ||
-              window.outerHeight - window.innerHeight > threshold) {
-            document.body.innerHTML =
-              "<h2 style='padding:20px;text-align:center;'>" +
-              "보안 정책상 화면 캡처/검사가 차단되었습니다." +
-              "</h2>";
+              // 만약 한 장씩 "탁탁" 넘기는 느낌을 원하면 위 줄 대신 아래 줄 사용
+              // window.PDFViewerApplication.pdfViewer.scrollMode = ScrollMode.PAGE || 3;
+            }
+          } catch (e) {
+            console.warn("scrollMode 설정 실패:", e);
           }
-        } catch (e) {
-          // 아무 것도 하지 않음
-        }
-      }, 1000);
-    }
-  </script>
-</body>
-</html>
+        });
 
+        // 2) Ctrl+P / Cmd+P 인쇄 억제 (PC에서만 의미 있음)
+        window.addEventListener(
+          "keydown",
+          function (e) {
+            const key = (e.key || "").toLowerCase();
+
+            // Ctrl+P 또는 Cmd+P
+            if ((e.ctrlKey || e.metaKey) && key === "p") {
+              e.preventDefault();
+              e.stopPropagation();
+              alert("보안 정책상 인쇄(CTRL+P)가 차단되었습니다.");
+            }
+
+            // PrintScreen: 대부분 환경에서 이벤트가 안 들어올 수 있음 (베스트 에포트)
+            if (e.key === "PrintScreen") {
+              e.preventDefault();
+              e.stopPropagation();
+              alert("보안 정책상 화면 캡처가 차단되었습니다.");
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(""); // 클립보드 비우기 시도
+              }
+            }
+          },
+          true  // capture 단계에서 먼저 가로채기
+        );
+
+        // 3) DevTools(개발자 도구) 감지 – PC에서만 동작하도록 제한
+        if (window.innerWidth > 800) { // 모바일에서 오동작 방지
+          const threshold = 160;  // 외곽-내곽 차이가 크면 도구가 열린 것으로 추정
+          setInterval(function () {
+            try {
+              if (window.outerWidth - window.innerWidth > threshold ||
+                  window.outerHeight - window.innerHeight > threshold) {
+                document.body.innerHTML =
+                  "<h2 style='padding:20px;text-align:center;'>" +
+                  "보안 정책상 화면 캡처/검사가 차단되었습니다." +
+                  "</h2>";
+              }
+            } catch (e) {
+              // 아무 것도 하지 않음
+            }
+          }, 1000);
+        }
+      </script>
   </body>
 </html>
+
