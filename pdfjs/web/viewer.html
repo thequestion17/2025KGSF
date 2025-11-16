@@ -35,13 +35,16 @@ See https://github.com/adobe-type-tools/cmap-resources
 
   <script src="viewer.mjs" type="module"></script>
   <style>
-  #download,
-  #secondaryDownload,
-  #print,
-  #openFile {
-    display: none !important;
-  }
- </style>    
+    /* 상단 툴바의 인쇄 / 저장 버튼 */
+    #printButton,
+    #downloadButton,
+    /* 보조 툴바(··· 버튼 눌렀을 때 나오는 메뉴)의 인쇄 / 저장 / 파일열기 */
+    #secondaryPrint,
+    #secondaryDownload,
+    #secondaryOpenFile {
+      display: none !important;
+    }
+  </style>
   </head>
 
   <body tabindex="0">
